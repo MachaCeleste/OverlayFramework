@@ -39,15 +39,69 @@
                 opacity: 0;
                 margin-top: -80px;
             }
+
+        #notification-container {
+            position: absolute;
+            top: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            pointer-events: none;
+        }
+
+        .notification {
+            min-width: 200px;
+            max-width: 600px;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 10px;
+            padding: 16px 20px;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: opacity 0.4s ease, transform 0.4s ease;
+        }
+
+            .notification.show {
+                opacity: 1;
+                transform: translateY(0);
+            }
+
+            .notification.hide {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+
+            .notification-title {
+                display: block;
+                font-size: 25px;
+                font-weight: bold;
+                margin-bottom: 10px;
+                text-align: center;
+            }
+
+            .notification-body {
+                font-size: 16px;
+                margin-bottom: 10px;
+                text-align: center;
+            }
+
+            .notification-footer {
+                font-size: 12px;
+                text-align: right;
+            }
     </style>
 </head>
 <body>
 
+    <div id="notification-container"></div>
+
     <div id="stack"></div>
 
     <script>
-        const stack = document.getElementById("stack");
         const ws = new WebSocket("ws://localhost:23399/ws");
+        const notificationContainer = document.getElementById("notification-container");
+        const notificationQueue = [];
+        let notificationActive = false;
+        const stack = document.getElementById("stack");
+
         const MessageType = {
             Message: 0,
             Notification: 1
@@ -57,19 +111,19 @@
             const msg = JSON.parse(e.data);
             switch (msg.Type) {
                 case MessageType.Message:
-                    showMessage(msg);
+                    postMessage(msg);
                     break;
                 case MessageType.Notification:
-                    showNotification(msg);
+                    queueNotification(msg);
                     break;
             }
         };
 
-        function showMessage(msg) {
-            const duration = getInt(msg) ?? 3000
-            const name = getString(msg) ?? "Unknown";
+        function postMessage(msg) {
+            const user = getString(msg) ?? "Unknown";
             const message = getString(msg) ?? "";
-            const output = name + ": " + message;
+            const duration = getInt(msg) ?? 3000;
+            const output = user + ": " + message;
 
             const el = document.createElement("div");
             el.className = "message";
@@ -83,8 +137,59 @@
             }, duration);
         }
 
-        function showNotification(msg) {
+        function queueNotification(msg) {
+            notificationQueue.push(msg);
+            processNotificationQueue();
+        }
 
+        function processNotificationQueue() {
+            if (notificationActive) return;
+            if (notificationQueue.length === 0) return;
+
+            notificationActive = true;
+            const msg = notificationQueue.shift();
+            showNotification(msg);
+        }
+
+        function showNotification(msg) {
+            const user = getString(msg) ?? "Unknown";
+            const title = getString(msg) ?? "";
+            const body = getString(msg) ?? "";
+            const duration = getInt(msg) ?? 3000;
+
+            const el = document.createElement("div");
+            el.className = "notification";
+
+            const titleEl = document.createElement("div");
+            titleEl.className = "notification-title";
+            titleEl.textContent = title;
+
+            const bodyEl = document.createElement("div");
+            bodyEl.className = "notification-body";
+            bodyEl.textContent = body;
+
+            const footerEl = document.createElement("div");
+            footerEl.className = "notification-footer";
+            footerEl.textContent = `- ${user}`;
+
+            el.appendChild(titleEl);
+            el.appendChild(bodyEl);
+            el.appendChild(footerEl);
+
+            notificationContainer.appendChild(el);
+
+            requestAnimationFrame(() => el.classList.add("show"));
+
+            setTimeout(() => {
+                el.classList.remove("show");
+                el.classList.add("hide");
+
+                setTimeout(() => {
+                    el.remove();
+                    notificationActive = false;
+                    processNotificationQueue();
+                }, 400);
+            }, duration);
         }
 
         function getString(msg) {

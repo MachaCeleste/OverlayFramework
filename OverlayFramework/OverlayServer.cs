@@ -38,11 +38,21 @@ namespace OverlayFramework
             lock (_clientLock) return _clients.Count;
         }
 
-        public async Task SendMessage(string text, int duration = 3000)
+        public async Task SendMessage(string user, string message, int duration = 3000)
         {
             NetMessage msg = new NetMessage(MessageType.Message);
-            msg.AddString("Console");
-            msg.AddString(text);
+            msg.AddString(user);
+            msg.AddString(message);
+            msg.AddInt(duration);
+            await SendNetMessage(msg);
+        }
+
+        public async Task SendNotification(string user, string title, string message, int duration = 3000)
+        {
+            NetMessage msg = new NetMessage(MessageType.Notification);
+            msg.AddString(user);
+            msg.AddString(title);
+            msg.AddString(message);
             msg.AddInt(duration);
             await SendNetMessage(msg);
         }
