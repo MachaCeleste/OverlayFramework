@@ -19,6 +19,13 @@
             gap: 12px;
         }
 
+        .user {
+            font-weight: bold;
+            margin-right: 4px;
+            text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
+            white-space: nowrap;
+        }
+
         .message {
             background: rgba(0, 0, 0, 0.7);
             color: white;
@@ -39,6 +46,13 @@
                 opacity: 0;
                 margin-top: -80px;
             }
+
+        .emote {
+            height: 1.2em;
+            width: auto;
+            vertical-align: middle;
+            margin: 0 0.15em;
+        }
 
         #notification-container {
             position: absolute;
@@ -122,12 +136,12 @@
         function postMessage(msg) {
             const user = getString(msg) ?? "Unknown";
             const message = getString(msg) ?? "";
+            const userColor = getString(msg) ?? "#000000";
             const duration = getInt(msg) ?? 3000;
-            const output = user + ": " + message;
 
             const el = document.createElement("div");
             el.className = "message";
-            el.textContent = output ?? "";
+            el.innerHTML = `<span class="user" style="color: ${userColor}">${user}:</span> ${message}`;
             stack.appendChild(el);
             requestAnimationFrame(() => el.classList.add("show"));
             setTimeout(() => {

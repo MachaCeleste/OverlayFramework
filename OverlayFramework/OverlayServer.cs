@@ -38,11 +38,12 @@ namespace OverlayFramework
             lock (_clientLock) return _clients.Count;
         }
 
-        public async Task SendMessage(string user, string message, int duration = 3000)
+        public async Task SendMessage(string user, string message, string userColor = "#000000", int duration = 3000)
         {
             NetMessage msg = new NetMessage(MessageType.Message);
             msg.AddString(user);
             msg.AddString(message);
+            msg.AddString(userColor);
             msg.AddInt(duration);
             await SendNetMessage(msg);
         }
@@ -62,7 +63,7 @@ namespace OverlayFramework
             var json = JsonSerializer.Serialize(msg);
             byte[] bytes = Encoding.UTF8.GetBytes(json);
             List<WebSocket> @lock;
-            lock (_clientLock) @lock = _clients;
+            lock (_clientLock) @lock = [.. _clients];
             foreach (var client in @lock)
             {
                 if (client.State != WebSocketState.Open) continue;
