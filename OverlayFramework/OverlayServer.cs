@@ -9,6 +9,10 @@ namespace OverlayFramework
     {
         public static OverlayServer Singleton { get; private set; }
 
+        public bool IsEnabled;
+        public int MessageDuration = 3000;
+        public int NotificationDuration = 7000;
+
         private HttpListener _listener;
         private readonly List<WebSocket> _clients;
         private readonly object _clientLock = new();
@@ -24,6 +28,7 @@ namespace OverlayFramework
             _listener.Prefixes.Add($"http://localhost:{_listenPort}/");
             _clients = new List<WebSocket>();
             _cts = new CancellationTokenSource();
+            IsEnabled = true;
             OverlayServer.Singleton = this;
         }
 
@@ -38,23 +43,25 @@ namespace OverlayFramework
             lock (_clientLock) return _clients.Count;
         }
 
-        public async Task SendMessage(string user, string message, string userColor = "#000000", int duration = 3000)
+        public async Task SendMessage(string user, string message, string userColor = "#000000")
         {
+            if (!IsEnabled) return;
             NetMessage msg = new NetMessage(MessageType.Message);
             msg.AddString(user);
             msg.AddString(message);
             msg.AddString(userColor);
-            msg.AddInt(duration);
+            msg.AddInt(MessageDuration);
             await SendNetMessage(msg);
         }
 
-        public async Task SendNotification(string user, string title, string message, int duration = 3000)
+        public async Task SendNotification(string user, string title, string message)
         {
+            if (!IsEnabled) return;
             NetMessage msg = new NetMessage(MessageType.Notification);
             msg.AddString(user);
             msg.AddString(title);
             msg.AddString(message);
-            msg.AddInt(duration);
+            msg.AddInt(NotificationDuration);
             await SendNetMessage(msg);
         }
 
@@ -115,7 +122,7 @@ namespace OverlayFramework
             var socket = wsContent.WebSocket;
             lock (_clientLock) _clients.Add(socket);
 
-            var buffer = new byte[10000];
+            var buffer = new byte[10000]; // Todo: Factor the max buffer needed to handle twitch messages
 
             try
             {
