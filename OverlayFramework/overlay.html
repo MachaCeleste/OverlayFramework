@@ -56,10 +56,12 @@
 
         #notification-container {
             position: absolute;
-            top: 40px;
-            left: 50%;
-            transform: translateX(-50%);
             pointer-events: none;
+            min-width: 250px;
+            min-height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .notification {
@@ -69,18 +71,15 @@
             border-radius: 10px;
             padding: 16px 20px;
             opacity: 0;
-            transform: translateY(-20px);
             transition: opacity 0.4s ease, transform 0.4s ease;
         }
 
             .notification.show {
                 opacity: 1;
-                transform: translateY(0);
             }
 
             .notification.hide {
                 opacity: 0;
-                transform: translateY(-20px);
             }
 
         .notification-title {
@@ -115,6 +114,11 @@
         const notificationContainer = document.getElementById("notification-container");
         const notificationQueue = [];
         let notificationActive = false;
+        let nPosX = Math.random() * (window.innerWidth - 200);
+        let nPosY = Math.random() * (window.innerHeight - 100);
+        let nVelX = 3;
+        let nVelY = 2;
+
         const stack = document.getElementById("stack");
 
         const MessageType = {
@@ -220,6 +224,37 @@
                 }, 400);
             }, duration);
         }
+
+        function updateBounce() {
+            const el = document.getElementById("notification-container");
+            if (!el) return;
+            const rect = el.getBoundingClientRect();
+            const rWidth = rect.width;
+            const rHeight = rect.height;
+
+            if (nPosX + rWidth >= window.innerWidth) {
+                nVelX = -Math.abs(nVelX);
+                nPosX = window.innerWidth - rWidth;
+            }
+            else if (nPosX <= 0) {
+                nVelX = Math.abs(nVelX);
+                nPosX = 0;
+            }
+            if (nPosY + rect.height >= window.innerHeight) {
+                nVelY = -Math.abs(nVelY);
+                nPosY = window.innerHeight - rHeight;
+            }
+            else if (nPosY <= 0) {
+                nVelY = Math.abs(nVelY);
+                nPosY = 0;
+            }
+            nPosX += nVelX;
+            nPosY += nVelY;
+            el.style.transform = `translate(${nPosX}px, ${nPosY}px)`;
+            requestAnimationFrame(updateBounce);
+        }
+
+        updateBounce();
 
         function getString(msg) {
             return msg.stringValues?.shift();

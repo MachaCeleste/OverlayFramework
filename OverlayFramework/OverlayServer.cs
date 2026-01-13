@@ -10,8 +10,8 @@ namespace OverlayFramework
         public static OverlayServer Singleton { get; private set; }
 
         public bool IsEnabled;
-        public int MessageDuration = 3000;
-        public int NotificationDuration = 7000;
+        public int MessageDuration = 5000;
+        public int NotificationDuration = 9000;
 
         private HttpListener _listener;
         private readonly List<WebSocket> _clients;
