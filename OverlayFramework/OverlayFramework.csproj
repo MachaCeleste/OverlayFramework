@@ -4,6 +4,27 @@
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <Title>Overlay Framework</Title>
+    <Authors>Macha Celeste</Authors>
+    <Company>Celestial Corp</Company>
   </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DebugType>none</DebugType>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DebugType>none</DebugType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Chat.html" />
+    <None Remove="Notifications.html" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Overlays\Chat.html" />
+    <EmbeddedResource Include="Overlays\Notifications.html" />
+  </ItemGroup>
 
 </Project>
