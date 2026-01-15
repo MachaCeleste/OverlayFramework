@@ -18,6 +18,7 @@ namespace OverlayFramework
     public enum ClientType
     {
         Chat,
-        Notification
+        Notification,
+        EmoteWall
     }
 }

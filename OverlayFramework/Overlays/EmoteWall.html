@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <style>
+        body {
+            margin: 0;
+            background: transparent;
+            overflow: hidden;
+            font-family: sans-serif;
+        }
+
+        .emote {
+            position: absolute;
+            height: auto;
+            opacity: 0;
+            will-change: transform, opacity;
+            transition: opacity 0.4s ease;
+        }
+    </style>
+</head>
+<body>
+    <div id="emote-container"></div>
+    <script>
+        let ws;
+        const socUrl = `ws://${window.location.host}/ws?type=emotewall`;
+        const container = document.getElementById("emote-container");
+        const countPad = 2; // Pad num of emotes to spawn
+        const minSize = 32; // Emote size min/max
+        const maxSize = 128;
+        const wSpawnPer = 0.4; // Spawn area w/h as percentage
+        const hSpawnPer = 0.3;
+        const minVel = 2; // Start velocity min/max
+        const maxVel = 6;
+        const lifetime = 5000; // Start lifetime
+        const gravity = 0.2; // Gravity strength
+        const gravProb = 0.5; // Probability of having gravity
+        const bounce = 0.7; // Energy preserved on bounce, closer to 1 = more energy preserved
+        const bounceDecay = 500; // Lifetime loss on bounce
+
+        function connect() {
+            ws = new WebSocket(socUrl);
+            ws.onopen = e => {
+                console.log(`Connected to ${window.location.host}!`);
+            };
+            ws.onclose = e => {
+                console.log('Socket closed! Waiting to reconnect...', e.reason);
+                setTimeout(function () {
+                    connect();
+                }, 2000);
+            };
+
+            ws.onmessage = e => {
+                const msg = JSON.parse(e.data);
+                msg.forEach(emote => {
+                    const count = Math.random() * ((emote.count + countPad) - 1) + 1;
+                    const startPos = getSpawnPos();
+                    const hasGravity = Math.random() < gravProb;
+                    for (let i = 0; i < (count); i++) {
+                        spawnEmote(emote, startPos, hasGravity);
+                    }
+                });
+            };
+        }
+
+        function getSpawnPos() {
+            const width = window.innerWidth * wSpawnPer;
+            const height = window.innerHeight * hSpawnPer;
+
+            const originX = (window.innerWidth - width) / 2;
+            const originY = (window.innerHeight - height) / 2;
+
+            const posX = originX + (Math.random() * width);
+            const posY = originY + (Math.random() * height);
+
+            return { x: posX, y: posY };
+        }
+
+        function spawnEmote(emote, pos, hasGravity) {
+            const img = document.createElement('img');
+            const rawUrl = emote.url;
+            url = rawUrl.replace(/\/(\d\.\d)$/, "/2.0");
+            img.src = url;
+            img.className = 'emote';
+
+            let posX = pos.x;
+            let posY = pos.y;
+
+            const size = Math.random() * (maxSize - minSize) + minSize;
+            img.style.width = `${size}px`;
+
+            let angle = Math.random() * 360;
+            if (hasGravity) angle = (Math.random() * Math.PI) + Math.PI;
+
+            const speed = Math.random() * (maxVel - minVel) + minVel;
+            let velX = Math.cos(angle) * speed;
+            let velY = Math.sin(angle) * speed;
+
+            container.appendChild(img);
+
+            requestAnimationFrame(() => img.style.opacity = '1');
+
+            let lastUpdate = Date.now();
+            let elapsed = 0;
+
+            function update() {
+                elapsed += Date.now() - lastUpdate;
+                lastUpdate = Date.now();
+
+                if (hasGravity) velY += gravity;
+                posX += velX;
+                posY += velY;
+
+                if (posY + size > window.innerHeight) {
+                    posY = window.innerHeight - size;
+                    velY *= -bounce;
+                    elapsed += bounceDecay;
+                }
+
+                if (posX + size < -100 || posX > window.innerWidth + 100 || posY + size < -100) {
+                    despawn();
+                    return;
+                }
+
+                if (elapsed >= lifetime && !img.dataset.fading) {
+                    img.dataset.fading = "true";
+                    img.style.opacity = '0';
+                    img.addEventListener('transitionend', () => {
+                        despawn();
+                    }, { once: true });
+                }
+
+                img.style.transform = `translate(${posX}px, ${posY}px)`;
+                requestAnimationFrame(update);
+            }
+
+            function despawn() {
+                if (img.parentNode) {
+                    img.parentNode.removeChild(img);
+                }
+            }
+
+            requestAnimationFrame(update);
+        }
+
+        connect();
+    </script>
+</body>
+</html>

@@ -89,15 +89,29 @@ namespace OverlayFramework
         /// <param name="message"></param>
         /// <param name="userColor"></param>
         /// <returns></returns>
-        public async Task SendNotification(string user, string title, string message, string userColor = "#a970ff")
+        public async Task SendNotification(string title, string content)
         {
             Notification notif = new Notification();
-            notif.Title = $"<span class=\"user\" style=\"color: {userColor}\">{user}</span> {title}";
-            notif.Content = message;
+            notif.Title = title;
+            notif.Content = content;
             notif.Duration = NotificationDuration;
             var json = JsonSerializer.Serialize(notif);
             byte[] bytes = Encoding.UTF8.GetBytes(json);
             await SendClientMessage(ClientType.Notification, bytes);
+        }
+
+        /// <summary>
+        /// Send a emote list to all clients listening to emote wall
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        public async Task SendEmotes(Dictionary<string, int> data)
+        {
+            List<Emote> emotes = new List<Emote>();
+            foreach (var item in data) emotes.Add(new Emote { Url = item.Key, Count = item.Value });
+            var json = JsonSerializer.Serialize(emotes);
+            byte[] bytes = Encoding.UTF8.GetBytes(json);
+            await SendClientMessage(ClientType.EmoteWall, bytes);
         }
 
         private async Task SendClientMessage(ClientType type, byte[] data)
