@@ -78,9 +78,8 @@
 
         function spawnEmote(emote, pos, hasGravity) {
             const img = document.createElement('img');
-            const rawUrl = emote.url;
-            url = rawUrl.replace(/\/(\d\.\d)$/, "/2.0");
-            img.src = url;
+            console.log(emote.url);
+            img.src = emote.url;
             img.className = 'emote';
 
             let posX = pos.x;
