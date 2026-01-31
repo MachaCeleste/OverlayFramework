@@ -45,21 +45,13 @@ namespace OverlayFramework
         }
 
         /// <summary>
-        /// Get the number of clients listening to chat
+        /// Get the number of clients listening to a given type
         /// </summary>
+        /// <param name="clientType"></param>
         /// <returns></returns>
-        public int GetNumChatClients()
+        public int GetNumClients(ClientType clientType)
         {
-            return _clients.Where(x => x.Client == ClientType.Chat).Count();
-        }
-
-        /// <summary>
-        /// Get the number of clients listening to notifications
-        /// </summary>
-        /// <returns></returns>
-        public int GetNumNotifClients()
-        {
-            return _clients.Where(x => x.Client == ClientType.Notification).Count();
+            return _clients.Where(x => x.Client == clientType).Count();
         }
 
         /// <summary>
