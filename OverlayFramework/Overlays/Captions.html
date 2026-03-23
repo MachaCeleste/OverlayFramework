@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <style>
+        body {
+            margin: 0;
+            background: transparent;
+            overflow: hidden;
+            font-family: sans-serif;
+        }
+
+        .message {
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+            padding: 14px 22px;
+            border-radius: 8px;
+            font-size: 32px;
+            opacity: 1;
+            transition: opacity 0.4s ease;
+            max-width: 900px;
+            word-wrap: normal;
+            overflow-wrap: normal;
+        }
+   
+            .message.hide {
+                opacity: 0;
+            }
+
+    </style>
+</head>
+<body>
+    <div id="stack"></div>
+
+    <script>
+        let ws;
+        const socUrl = `ws://${window.location.host}/ws?type=caption`;
+        const stack = document.getElementById("stack");
+
+        let currentCap = null;
+
+        function connect() {
+            ws = new WebSocket(socUrl);
+            ws.onopen = e => {
+                console.log(`Connected to ${window.location.host}!`);
+            };
+            ws.onclose = e => {
+                console.log('Socket closed! Waiting to reconnect...', e.reason);
+                setTimeout(function () {
+                    connect();
+                }, 2000);
+            };
+
+            ws.onmessage = e => {
+                const msg = JSON.parse(e.data);
+                if (currentCap == null) {
+                    newCaption(msg);
+                }
+                else {
+                    updateCaption(msg);
+                }
+            }
+        }
+
+        function newCaption(msg) {
+            currentCap = document.createElement("div");
+            currentCap.className = "message";
+            currentCap.innerHTML = msg.content;
+            stack.appendChild(currentCap);
+            checkFinal(msg);
+        }
+
+        function updateCaption(msg) {
+            currentCap.innerHTML = msg.content;
+            checkFinal(msg);
+        }
+
+        function checkFinal(msg) {
+            if (msg.final == true) {
+                el = currentCap;
+                currentCap = null;
+                setTimeout(() => {
+                    el.classList.add("hide");
+                    setTimeout(() => el.remove(), 400)
+                }, 2000)
+            }
+        }
+
+        connect();
+    </script>
+</body>
+</html>

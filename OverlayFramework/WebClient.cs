@@ -19,6 +19,7 @@ namespace OverlayFramework
     {
         Chat,
         Notification,
-        EmoteWall
+        EmoteWall,
+        Caption
     }
 }

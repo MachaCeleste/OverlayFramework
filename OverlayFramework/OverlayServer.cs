@@ -106,6 +106,21 @@ namespace OverlayFramework
             await SendClientMessage(ClientType.EmoteWall, bytes);
         }
 
+        /// <summary>
+        /// Send a caption to all clients listening to captions
+        /// </summary>
+        /// <param name="caption"></param>
+        /// <returns></returns>
+        public async Task SendCaption(string caption, bool isFinal)
+        {
+            Caption cap = new Caption();
+            cap.Content = caption;
+            cap.Final = isFinal;
+            var json = JsonSerializer.Serialize(cap);
+            byte[] bytes = Encoding.UTF8.GetBytes(json);
+            await SendClientMessage(ClientType.Caption, bytes);
+        }
+
         private async Task SendClientMessage(ClientType type, byte[] data)
         {
             List<WebClient> @lock;
