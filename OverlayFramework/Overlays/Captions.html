@@ -18,7 +18,7 @@
             font-size: 32px;
             opacity: 1;
             transition: opacity 0.4s ease;
-            max-width: 900px;
+            max-width: 1024px;
             word-wrap: normal;
             overflow-wrap: normal;
         }
@@ -46,6 +46,7 @@
             };
             ws.onclose = e => {
                 console.log('Socket closed! Waiting to reconnect...', e.reason);
+                checkFinal(true);
                 setTimeout(function () {
                     connect();
                 }, 2000);
@@ -67,16 +68,16 @@
             currentCap.className = "message";
             currentCap.innerHTML = msg.content;
             stack.appendChild(currentCap);
-            checkFinal(msg);
+            checkFinal(msg.final);
         }
 
         function updateCaption(msg) {
             currentCap.innerHTML = msg.content;
-            checkFinal(msg);
+            checkFinal(msg.final);
         }
 
-        function checkFinal(msg) {
-            if (msg.final == true) {
+        function checkFinal(final) {
+            if (final == true) {
                 el = currentCap;
                 currentCap = null;
                 setTimeout(() => {
